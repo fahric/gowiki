@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-var templates = template.Must(template.ParseFiles("./tmpl/edit.html","./tmpl/view.html"))
+var templates = template.Must(template.ParseFiles("./tmpl/edit.html","./tmpl/view.html","./tmpl/FrontPage.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 type Page struct {
 	Path   string
@@ -82,6 +82,15 @@ func saveHandler(w http.ResponseWriter, r *http.Request,path string) {
 	http.Redirect(w, r, "/view/"+path, http.StatusFound)
 }
 
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	path := "FrontPage"
+	p, err := loadPage(path)
+	if err != nil {
+		p = &Page{Title: path, Path: path}
+	}
+	renderTemplate(w, "FrontPage", p)
+}
+
 func makeHandler(fn func(http.ResponseWriter,*http.Request, string)) http.HandlerFunc  {
 	return func(w http.ResponseWriter,r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
@@ -94,6 +103,7 @@ func makeHandler(fn func(http.ResponseWriter,*http.Request, string)) http.Handle
 }
 
 func main() {
+	http.HandleFunc("/", rootHandler)
 
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
