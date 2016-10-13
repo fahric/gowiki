@@ -1,15 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>FrontPage2</title>
-</head>
-<body>
+{{template "Header.html" .}}
+<script>
+    function addNewPage() {
+        var pagename = document.getElementById("pageName").value;
+
+        window.location.href="/view/"+pagename;
+    }
+</script>
 <h3>Available wiki pages:</h3>
 <ul>
 {{ range $key, $value := . }}
-    <li><a href='view/{{$value.Name | ReplaceJSONExtension }}'>{{$value.Name}}</a></li>
+    <li><a href='view/{{$value.Name | ReplaceJSONExtension }}'>{{$value.Name| ReplaceJSONExtension }}</a></li>
 {{ end }}
 </ul>
-</body>
-</html>
+<div>
+    <input type="text" id="pageName" name="pageName" /> <a href="#" name="newpage" id="newpage" onclick="addNewPage()">Add new Page</a>
+</div>
+{{template "Footer.html" .}}

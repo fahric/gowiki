@@ -1,3 +1,5 @@
+{{template "Header.html" .}}
+
 <h1>Editing {{.Path}}</h1>
 
 <form action="/save/{{.Path}}" method="POST">
@@ -6,3 +8,4 @@
     <div><textarea name="footer" rows="20" cols="80">{{printf "%s" .Footer}}</textarea></div>
     <div><input type="submit" value="Save"></div>
 </form>
+{{template "Footer.html" .}}
