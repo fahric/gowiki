@@ -6,9 +6,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"os"
+	"strings"
 )
 
-var templates = template.Must(template.ParseFiles("./tmpl/edit.html","./tmpl/view.html","./tmpl/FrontPage.html"))
+var (
+	funcMap = template.FuncMap{
+		"ReplaceJSONExtension": func(s string) string {
+			return strings.Replace(s,".json","",-1)
+		},
+	}
+)
+var templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("./tmpl/*.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 type Page struct {
 	Path   string
@@ -70,6 +79,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	}
 }
 
+
 func saveHandler(w http.ResponseWriter, r *http.Request,path string) {
 	bodyText := r.FormValue("body")
 	titleText := r.FormValue("title")
@@ -82,13 +92,30 @@ func saveHandler(w http.ResponseWriter, r *http.Request,path string) {
 	http.Redirect(w, r, "/view/"+path, http.StatusFound)
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	path := "FrontPage"
-	p, err := loadPage(path)
-	if err != nil {
-		p = &Page{Title: path, Path: path}
+func ReadPages() ([]os.FileInfo,error){
+	f,err := os.Open("data")
+	if err != nil{
+		return nil,err
 	}
-	renderTemplate(w, "FrontPage", p)
+	list, err  := f.Readdir(-1)
+	f.Close()
+	if err != nil{
+		return nil,err
+	}
+	return list,nil
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	list,err := ReadPages()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = templates.ExecuteTemplate(w,"FrontPage.html",list)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func makeHandler(fn func(http.ResponseWriter,*http.Request, string)) http.HandlerFunc  {

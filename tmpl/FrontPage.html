@@ -5,6 +5,11 @@
     <title>FrontPage2</title>
 </head>
 <body>
-XXXX
+<h3>Available wiki pages:</h3>
+<ul>
+{{ range $key, $value := . }}
+    <li><a href='view/{{$value.Name | ReplaceJSONExtension }}'>{{$value.Name}}</a></li>
+{{ end }}
+</ul>
 </body>
 </html>
